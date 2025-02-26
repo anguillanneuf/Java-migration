@@ -1,5 +1,6 @@
 package com.example.taskmanager;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -19,7 +20,7 @@ public class TaskManager {
         this.tasks = new ArrayList<>();
     }
 
-        /**
+    /**
      * Adds a new task to the task manager.
      *
      * @param description The description of the task.
@@ -28,7 +29,7 @@ public class TaskManager {
      */
     public String addTask(String description, Date dueDate) {
         String taskId = UUID.randomUUID().toString();
-        Task task = new Task(taskId, description, dueDate, false);
+        Task task = new Task(taskId, description, LocalDate.from(dueDate), false, (int)Math.max(0, (dueDate.getTime() - new Date().getTime()) / (1000 * 60)));
         tasks.add(task);
         return taskId;
     }
@@ -39,7 +40,7 @@ public class TaskManager {
      * @return A List containing all tasks. A copy of the internal list is returned to prevent external modifications.
      */
     public List<Task> getAllTasks() {
-        return new ArrayList<>(tasks); // Return a copy to avoid external modification
+        return new ArrayList<>(tasks);
     }
 
     /**
@@ -49,19 +50,22 @@ public class TaskManager {
      * @return True if the task was found and marked as complete, false otherwise.
      */
     public boolean markComplete(String taskId) {
-
-        for (Task task : tasks) { // Enhanced for loop, more readable
+        for (Task task : tasks) {
             if (task.id().equals(taskId)) {
-                // Create a new Task with the updated completed status
-                tasks.set(tasks.indexOf(task), new Task(task.id(), task.description(), task.dueDate(), true, 0));
-                return true;
+                int index = tasks.indexOf(task);
+                if (index >= 0 && index < tasks.size()) {
+                    Task currentTask = tasks.get(index);
+                    Task updatedTask = new Task(currentTask.id(), currentTask.description(), currentTask.dueDate(), true, currentTask.pendingTime());
+                    tasks.set(index, updatedTask);
+                    return true;
+                }
             }
         }
         return false;
     }
 
     public Task findTaskById(String taskId) {
-        for (Task task : tasks) { // Enhanced for loop
+        for (Task task : tasks) {
             if (task.id().equals(taskId)) {
                 return task;
             }
